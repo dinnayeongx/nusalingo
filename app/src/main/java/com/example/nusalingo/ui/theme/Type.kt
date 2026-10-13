@@ -17,6 +17,10 @@ val NunitoFont = FontFamily(
     Font(R.font.nunito_extrabold, FontWeight.ExtraBold)
 )
 
+val JavaneseFont = FontFamily(
+    Font(R.font.notosansjavanese_medium, FontWeight.Medium)
+)
+
 val Typography = Typography(
     displayLarge = TextStyle(
         fontFamily = NunitoFont,

@@ -4,6 +4,11 @@ import androidx.compose.ui.graphics.Color
 
 object NusalingoColors {
     val Background = Color(0xFFF9F6F0)
+    val CardCream = Color(0xFFE7DDCB)
+    val CardYellow = Color(0xFFFFDFA5)
+    val BrownAccent = Color(0xFF95602F)
+    val Disabled = Color(0xFFD9D9D9)
+    val ChartGreen = Color(0xFFA8BC6B)
     val Black = Color(0xFF000000)
 
     val ActionPrimary = Color(0xFF1B365D)
@@ -20,4 +25,7 @@ object NusalingoColors {
 
     val InputBackground = Color(0xFFFFFCF6)
     val InputBorder = Color(0xFFE6DDCD)
+
+    val GreenPrimary = Color(0xFF14AE5C)
+    val GreenSecondary = Color(0xFFAAD9AA)
 }
