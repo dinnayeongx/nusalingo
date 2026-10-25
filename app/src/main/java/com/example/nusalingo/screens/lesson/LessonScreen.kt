@@ -25,6 +25,9 @@ import androidx.compose.ui.unit.sp
 import com.example.nusalingo.screens.home.BrandLogo
 import com.example.nusalingo.ui.theme.NunitoFont
 import com.example.nusalingo.ui.theme.NusalingoColors
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 private val lessonItems = listOf(
     "Carakan 1",
@@ -98,5 +101,48 @@ fun LessonItemCard(
             contentDescription = "Buka $title",
             tint = Color.White
         )
+    }
+}
+
+@Composable
+fun LessonRoute(
+    onLessonSelected: (String) -> Unit,
+    viewModel: LessonViewModel = viewModel()
+) {
+    val state by viewModel.uiState.collectAsState()
+
+    LessonScreen(
+        state = state,
+        onLessonSelected = { lessonTitle ->
+            viewModel.selectLesson(lessonTitle)
+            onLessonSelected(lessonTitle)
+        }
+    )
+}
+
+@Composable
+fun LessonScreen(
+    state: LessonState,
+    onLessonSelected: (String) -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(NusalingoColors.Background)
+            .padding(horizontal = 16.dp)
+    ) {
+        BrandLogo()
+
+        Column(
+            verticalArrangement = Arrangement.spacedBy(14.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            state.lessonList.forEach { lesson ->
+                LessonItemCard(
+                    title = lesson,
+                    onClick = { onLessonSelected(lesson) }
+                )
+            }
+        }
     }
 }

@@ -30,6 +30,9 @@ import com.example.nusalingo.screens.quiz.QuizType
 import com.example.nusalingo.ui.theme.JavaneseFont
 import com.example.nusalingo.ui.theme.NunitoFont
 import com.example.nusalingo.ui.theme.NusalingoColors
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
 fun LessonDetailScreen(title: String = "Carakan 1", onBack: () -> Unit, onStartLesson: () -> Unit) {
@@ -93,6 +96,60 @@ fun ScriptChartSection(title: String, rows: List<List<Pair<String, String>>>) {
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun LessonDetailRoute(
+    onBack: () -> Unit,
+    onStartLesson: () -> Unit,
+    viewModel: LessonViewModel = viewModel()
+) {
+    val state by viewModel.uiState.collectAsState()
+
+    LessonDetailScreen(
+        detail = state.currentDetail,
+        onBack = onBack,
+        onStartLesson = onStartLesson
+    )
+}
+
+@Composable
+fun LessonDetailScreen(
+    detail: LessonDetail,
+    onBack: () -> Unit,
+    onStartLesson: () -> Unit
+) {
+    Column(Modifier.fillMaxSize()) {
+        Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 24.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 16.dp, bottom = 16.dp)) {
+                Text("‹", modifier = Modifier.clickable(onClick = onBack).padding(end = 18.dp),
+                    fontSize = 44.sp, color = Color.Black, fontFamily = NunitoFont)
+                Text(detail.title, fontFamily = NunitoFont, fontWeight = FontWeight.ExtraBold,
+                    fontSize = 28.sp, color = NusalingoColors.TextPrimary)
+            }
+            Text(detail.description,
+                fontFamily = NunitoFont, fontSize = 16.sp, lineHeight = 25.sp,
+                color = NusalingoColors.TextSecondary, modifier = Modifier.padding(start = 8.dp, bottom = 24.dp))
+            Button(
+                onClick = onStartLesson,
+                modifier = Modifier.fillMaxWidth().height(64.dp),
+                shape = RoundedCornerShape(22.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = NusalingoColors.ActionPrimary)
+            ) {
+                Text("Mulai Belajar", fontFamily = NunitoFont, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            }
+            Spacer(Modifier.height(28.dp))
+
+            // Render dinamis dari State
+            detail.chartSections.forEach { chart ->
+                ScriptChartSection(
+                    title = chart.title,
+                    rows = chart.rows
+                )
+                Spacer(Modifier.height(24.dp))
             }
         }
     }

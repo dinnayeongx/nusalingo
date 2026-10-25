@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.sp
 import com.example.nusalingo.R
 import com.example.nusalingo.ui.theme.NunitoFont
 import com.example.nusalingo.ui.theme.NusalingoColors
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
 fun BrandLogo(modifier: Modifier = Modifier) {
@@ -76,6 +77,53 @@ fun LearningLevelCard(title: String, level: Int, onClick: () -> Unit) {
         Box(Modifier.fillMaxWidth().height(54.dp).padding(start = 24.dp), contentAlignment = Alignment.CenterStart) {
             Text("Level $level", fontFamily = NunitoFont, fontSize = 22.sp,
                 fontWeight = FontWeight.Bold, color = NusalingoColors.ActionPrimary)
+        }
+    }
+}
+
+@Composable
+fun HomeRoute(
+    onExplore: () -> Unit,
+    onLevel: (Int) -> Unit,
+    viewModel: HomeViewModel = viewModel()
+) {
+    val state by viewModel.uiState.collectAsState()
+
+    HomeScreen(
+        state = state,
+        onExplore = onExplore,
+        onLevel = onLevel
+    )
+}
+
+@Composable
+fun HomeScreen(
+    state: HomeState, // Menerima State dari ViewModel
+    onExplore: () -> Unit,
+    onLevel: (Int) -> Unit
+) {
+    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp)) {
+        BrandLogo()
+        Row(
+            Modifier.fillMaxWidth().height(70.dp).clip(RoundedCornerShape(18.dp))
+                .background(NusalingoColors.CardCream).clickable(onClick = onExplore).padding(horizontal = 22.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                "Jelajahi ${state.selectedAksaraName}", // Membaca data dinamis dari State
+                Modifier.weight(1f),
+                fontFamily = NunitoFont,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = NusalingoColors.ActionPrimary
+            )
+            Icon(Icons.Outlined.ChevronRight, contentDescription = "Jelajahi", tint = NusalingoColors.ActionPrimary, modifier = Modifier.size(32.dp))
+        }
+        Spacer(Modifier.height(16.dp))
+
+        state.levelList.forEach { levelItem ->
+            LearningLevelCard(levelItem.title, levelItem.levelNumber) { onLevel(levelItem.levelNumber) }
+            Spacer(Modifier.height(16.dp))
         }
     }
 }
