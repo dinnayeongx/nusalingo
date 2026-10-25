@@ -17,70 +17,57 @@ import com.example.nusalingo.screens.practice.PracticeScreen
 import com.example.nusalingo.screens.quiz.QuizFlowScreen
 import com.example.nusalingo.screens.quiz.QuizType
 import com.example.nusalingo.ui.theme.NusalingoColors
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import com.example.nusalingo.navigation.NusaBottomNavigation
+import com.example.nusalingo.navigation.NusalingoNavigation
+import com.example.nusalingo.navigation.Routes
 
 private enum class AppPage { HOME, PRACTICE, LESSON, LESSON_DETAIL, SCRIPT_SELECT }
 
 @Composable
 fun NusaLingoApp() {
-    var page by remember { mutableStateOf(AppPage.HOME) }
-    var tab by remember { mutableStateOf(MainTab.HOME) }
-    var selectedQuiz by remember { mutableStateOf<QuizType?>(null) }
-    var selectedLevel by remember { mutableIntStateOf(1) }
-    var detailBackPage by remember { mutableStateOf(AppPage.HOME) }
+    val navController = rememberNavController()
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
 
-    var selectedLessonTitle by remember {
-        mutableStateOf("Carakan 1")
+    val currentTab = when (currentRoute) {
+        Routes.HOME -> MainTab.HOME
+        Routes.PRACTICE -> MainTab.PRACTICE
+        Routes.LEARN -> MainTab.LESSON
+        else -> MainTab.HOME
     }
 
-    BackHandler(enabled = selectedQuiz != null) { selectedQuiz = null }
-    BackHandler(enabled = selectedQuiz == null && page != AppPage.HOME) {
-        page = when (page) {
-            AppPage.SCRIPT_SELECT -> AppPage.HOME
-            AppPage.LESSON_DETAIL -> detailBackPage
-            else -> AppPage.HOME
-        }
-    }
-    if (selectedQuiz != null) {
-        QuizFlowScreen(quizType = selectedQuiz!!)
-        return
-    }
     Scaffold(
         containerColor = NusalingoColors.Background,
         bottomBar = {
-            NusaBottomNavigation(selected = tab) { chosen ->
-                tab = chosen
-                page = when (chosen) {
-                    MainTab.HOME -> AppPage.HOME
-                    MainTab.PRACTICE -> AppPage.PRACTICE
-                    MainTab.LESSON -> AppPage.LESSON
-                    MainTab.PROFILE -> AppPage.HOME
-                }
-            }
-        }
-    ) { padding ->
-        Box(Modifier.fillMaxSize().padding(padding)) {
-            when (page) {
-                AppPage.HOME -> HomeScreen(
-                    onExplore = { page = AppPage.SCRIPT_SELECT },
-                    onLevel = { selectedLevel = it; detailBackPage = AppPage.HOME; page = AppPage.LESSON_DETAIL }
-                )
-                AppPage.PRACTICE -> PracticeScreen(onPractice = { selectedQuiz = it })
-                AppPage.LESSON -> LessonScreen(
-                    onLessonSelected = { lessonTitle ->
-                        selectedLessonTitle = lessonTitle
-                        page = AppPage.LESSON_DETAIL
+            if (currentRoute?.startsWith("practice/quiz") != true) {
+                NusaBottomNavigation(
+                    selected = currentTab,
+                    onSelect = { tab ->
+                        val destination = when (tab) {
+                            MainTab.HOME -> Routes.HOME
+                            MainTab.PRACTICE -> Routes.PRACTICE
+                            MainTab.LESSON -> Routes.LEARN
+                            MainTab.PROFILE -> Routes.HOME
+                        }
+                        navController.navigate(destination) {
+                            popUpTo(Routes.HOME) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
                     }
                 )
-                AppPage.LESSON_DETAIL -> LessonDetailScreen(
-                    title = selectedLessonTitle,
-                    onBack = { page = AppPage.LESSON },
-                    onStartLesson = { /* TODO: connect to lesson flow */ }
-                )
-                AppPage.SCRIPT_SELECT -> PilihAksaraScreen(
-                    onBack = { page = AppPage.HOME },
-                    onSelect = { selectedLevel = 1; detailBackPage = AppPage.HOME; page = AppPage.LESSON_DETAIL }
-                )
             }
         }
+    ) { paddingValues ->
+        NusalingoNavigation(
+            navController = navController,
+            modifier = Modifier.padding(paddingValues)
+        )
     }
 }

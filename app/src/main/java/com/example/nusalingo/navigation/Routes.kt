@@ -11,10 +11,6 @@ object Routes {
     const val PRACTICE_QUIZ = "practice/quiz/{quizType}"
 
     fun levelSession(levelId: Int) = "level/$levelId"
-
-    fun practiceQuiz(quizType: String) =
-        "practice/quiz/$quizType"
-
-    fun lessonDetail(lessonId: Int) =
-        "lesson_detail/$lessonId"
+    fun practiceQuiz(quizType: String) = "practice/quiz/$quizType"
+    fun lessonDetail(lessonId: Int) = "lesson_detail/$lessonId"
 }
