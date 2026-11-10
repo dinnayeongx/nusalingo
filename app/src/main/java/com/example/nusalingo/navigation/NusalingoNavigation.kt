@@ -5,24 +5,27 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.example.nusalingo.screens.home.HomeRoute
-import com.example.nusalingo.screens.home.PilihAksaraRoute
-import com.example.nusalingo.screens.lesson.LessonDetailRoute
-import com.example.nusalingo.screens.lesson.LessonRoute
-import com.example.nusalingo.screens.practice.PracticeRoute
-import com.example.nusalingo.screens.quiz.QuizFlowRoute
-import com.example.nusalingo.screens.quiz.QuizType
+import com.example.nusalingo.feature.home.screen.HomeRoute
+import com.example.nusalingo.feature.home.screen.PilihAksaraRoute
+import com.example.nusalingo.feature.lesson.screen.LessonDetailRoute
+import com.example.nusalingo.feature.lesson.screen.LessonRoute
+import com.example.nusalingo.feature.practice.screen.PracticeRoute
+import com.example.nusalingo.feature.quiz.screen.QuizFlowRoute
+import com.example.nusalingo.feature.quiz.screen.QuizType
 
 @Composable
 fun NusalingoNavigation(
     navController: NavHostController,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    startDestination: String = Routes.LOGIN,
 ) {
     NavHost(
         navController = navController,
-        startDestination = Routes.HOME,
+        startDestination = startDestination,
         modifier = modifier
     ) {
+        authNavGraph(navController)
+
         composable(Routes.HOME) {
             HomeRoute(
                 onExplore = { navController.navigate(Routes.SELECT_SCRIPT) },

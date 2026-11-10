@@ -1,6 +1,6 @@
 package com.example.nusalingo.data
 
-import com.example.nusalingo.screens.quiz.QuizType
+import com.example.nusalingo.feature.quiz.screen.QuizType
 
 object LevelQuizConfig {
 
