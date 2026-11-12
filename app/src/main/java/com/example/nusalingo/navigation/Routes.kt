@@ -8,8 +8,6 @@ object Routes {
     const val ONBOARDING = "auth/onboarding/{displayName}"
     const val FORGOT_PASSWORD = "auth/forgot_password"
     const val CHECK_EMAIL = "auth/check_email"
-    const val RESET_PASSWORD = "auth/reset_password"
-    const val RESET_SUCCESS = "auth/reset_success"
 
     const val HOME = "home"
     const val SELECT_SCRIPT = "select_script"
@@ -34,7 +32,5 @@ object Routes {
         ONBOARDING,
         FORGOT_PASSWORD,
         CHECK_EMAIL,
-        RESET_PASSWORD,
-        RESET_SUCCESS,
     )
 }

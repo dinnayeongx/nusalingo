@@ -6,6 +6,8 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.SavedStateHandle
 import com.example.nusalingo.feature.auth.data.AccountRepository
 import com.example.nusalingo.feature.auth.data.FirebaseAccountRepository
+import com.example.nusalingo.feature.auth.data.OnboardingProgress
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,7 +21,7 @@ data class OnboardingUiState(
     val selectedScript: String? = null,
     val experience: String? = null,
     val learningGoals: Set<String> = emptySet(),
-    val isLoading: Boolean = false,
+    val isLoading: Boolean = true,
     val errorMessage: String? = null,
 )
 
@@ -34,28 +36,55 @@ class OnboardingViewModel(
     private val repository: AccountRepository = FirebaseAccountRepository()
     private val _state = MutableStateFlow(OnboardingUiState())
     val state: StateFlow<OnboardingUiState> = _state.asStateFlow()
+    private var progressSaveJob: Job? = null
 
     private val _events = Channel<OnboardingEvent>(Channel.BUFFERED)
     val events = _events.receiveAsFlow()
 
-    fun selectScript(value: String) = _state.update {
+    init {
+        viewModelScope.launch {
+            repository.loadOnboardingProgress()
+                .onSuccess { progress ->
+                    _state.update {
+                        it.copy(
+                            step = progress?.step ?: 0,
+                            selectedScript = progress?.selectedScript,
+                            experience = progress?.experience,
+                            learningGoals = progress?.learningGoals.orEmpty(),
+                            isLoading = false,
+                            errorMessage = null,
+                        )
+                    }
+                }
+                .onFailure { error ->
+                    Log.w(LOG_TAG, "Onboarding progress could not be restored.", error)
+                    _state.update {
+                        it.copy(
+                            isLoading = false,
+                            errorMessage = "Progres sebelumnya tidak dapat dipulihkan. Kamu bisa mulai lagi.",
+                        )
+                    }
+                }
+        }
+    }
+
+    fun selectScript(value: String) = updateProgress {
         it.copy(selectedScript = value, errorMessage = null)
     }
 
-    fun selectExperience(value: String) = _state.update {
+    fun selectExperience(value: String) = updateProgress {
         it.copy(experience = value, errorMessage = null)
     }
 
-    fun toggleGoal(value: String) = _state.update {
+    fun toggleGoal(value: String) = updateProgress {
         val goals = it.learningGoals.toMutableSet()
         if (!goals.add(value)) goals.remove(value)
         it.copy(learningGoals = goals, errorMessage = null)
     }
 
     fun back() {
-        _state.update {
-            if (it.step > 0 && !it.isLoading) it.copy(step = it.step - 1, errorMessage = null)
-            else it
+        if (_state.value.step > 0) {
+            updateProgress { it.copy(step = it.step - 1, errorMessage = null) }
         }
     }
 
@@ -69,6 +98,7 @@ class OnboardingViewModel(
                     _state.update { it.copy(errorMessage = "Pilih aksara yang ingin kamu pelajari.") }
                 } else {
                     _state.update { it.copy(step = 1, errorMessage = null) }
+                    persistProgress()
                 }
             }
 
@@ -77,6 +107,7 @@ class OnboardingViewModel(
                     _state.update { it.copy(errorMessage = "Pilih tingkat pengalamanmu.") }
                 } else {
                     _state.update { it.copy(step = 2, errorMessage = null) }
+                    persistProgress()
                 }
             }
 
@@ -84,6 +115,32 @@ class OnboardingViewModel(
             3 -> {
                 _state.update { it.copy(isLoading = true) }
                 viewModelScope.launch { _events.send(OnboardingEvent.Completed) }
+            }
+        }
+    }
+
+    private fun updateProgress(transform: (OnboardingUiState) -> OnboardingUiState) {
+        if (_state.value.isLoading) return
+        _state.update(transform)
+        persistProgress()
+    }
+
+    private fun persistProgress() {
+        val current = _state.value
+        progressSaveJob?.cancel()
+        progressSaveJob = viewModelScope.launch {
+            repository.saveOnboardingProgress(
+                OnboardingProgress(
+                    step = current.step,
+                    selectedScript = current.selectedScript,
+                    experience = current.experience,
+                    learningGoals = current.learningGoals,
+                )
+            ).onFailure { error ->
+                Log.w(LOG_TAG, "Onboarding progress could not be saved.", error)
+                _state.update {
+                    it.copy(errorMessage = "Progres onboarding tidak dapat disimpan di perangkat.")
+                }
             }
         }
     }
@@ -98,6 +155,7 @@ class OnboardingViewModel(
 
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, errorMessage = null) }
+            progressSaveJob?.join()
             repository.saveOnboarding(
                 displayName = displayName,
                 selectedScript = script,

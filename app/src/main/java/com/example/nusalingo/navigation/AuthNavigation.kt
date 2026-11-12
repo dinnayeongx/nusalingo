@@ -5,15 +5,12 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
-import androidx.navigation.navDeepLink
 import com.example.nusalingo.feature.auth.screen.LandingRoute
 import com.example.nusalingo.feature.auth.screen.OnboardingRoute
 import com.example.nusalingo.feature.auth.screen.RegisterRoute
 import com.example.nusalingo.feature.auth.screen.CheckEmailRoute
 import com.example.nusalingo.feature.auth.screen.ForgotPasswordRoute
 import com.example.nusalingo.feature.auth.screen.LoginRoute
-import com.example.nusalingo.feature.auth.screen.ResetPasswordRoute
-import com.example.nusalingo.feature.auth.screen.ResetSuccessScreen
 import com.example.nusalingo.feature.auth.ui.ForgotPasswordViewModel
 
 fun NavGraphBuilder.authNavGraph(navController: NavHostController) {
@@ -48,7 +45,13 @@ fun NavGraphBuilder.authNavGraph(navController: NavHostController) {
 
     composable(Routes.LOGIN) {
         LoginRoute(
-            onLoginSuccess = goToLoginLanding,
+            onLoginSuccess = { account ->
+                if (account.onboardingCompleted) {
+                    goToLoginLanding()
+                } else {
+                    goToNewAccountLanding(account.displayName)
+                }
+            },
             onForgotPassword = { navController.navigate(Routes.FORGOT_PASSWORD) },
             onRegister = { navController.navigate(Routes.REGISTER) },
             onContinueAsGuest = goToHome,
@@ -114,35 +117,4 @@ fun NavGraphBuilder.authNavGraph(navController: NavHostController) {
         )
     }
 
-    composable(
-        route = Routes.RESET_PASSWORD,
-        deepLinks = listOf(navDeepLink { uriPattern = "nusalingo://reset-password" })
-    ) {
-        ResetPasswordRoute(
-            onBack = { navController.popBackStack() },
-            onBackToLogin = {
-                if (!navController.popBackStack(Routes.LOGIN, inclusive = false)) {
-                    navController.navigate(Routes.LOGIN) {
-                        popUpTo(Routes.RESET_PASSWORD) { inclusive = true }
-                    }
-                }
-            },
-            onSuccess = {
-                navController.navigate(Routes.RESET_SUCCESS) {
-                    popUpTo(Routes.RESET_PASSWORD) { inclusive = true }
-                }
-            },
-        )
-    }
-
-    composable(Routes.RESET_SUCCESS) {
-        ResetSuccessScreen(
-            onBackToLogin = {
-                navController.navigate(Routes.LOGIN) {
-                    popUpTo(Routes.RESET_SUCCESS) { inclusive = true }
-                    launchSingleTop = true
-                }
-            }
-        )
-    }
 }

@@ -116,7 +116,7 @@ class RegisterViewModel(
 
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, errorMessage = null) }
-            repository.register(email, current.password)
+            repository.register(email, current.password, name)
                 .onSuccess {
                     _state.update { it.copy(isLoading = false) }
                     _events.send(RegisterEvent.Registered(name))

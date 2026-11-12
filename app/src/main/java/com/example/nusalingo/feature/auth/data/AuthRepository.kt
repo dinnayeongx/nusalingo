@@ -1,28 +1,32 @@
 package com.example.nusalingo.feature.auth.data
 
-import kotlinx.coroutines.delay
+data class AccountLoginResult(
+    val displayName: String,
+    val onboardingCompleted: Boolean,
+)
 
-interface AuthRepository {
-    suspend fun login(email: String, password: String): Result<Unit>
-    suspend fun sendResetLink(email: String): Result<Unit>
-    suspend fun resetPassword(newPassword: String): Result<Unit>
+data class OnboardingProgress(
+    val step: Int = 0,
+    val selectedScript: String? = null,
+    val experience: String? = null,
+    val learningGoals: Set<String> = emptySet(),
+)
+
+interface AccountRepository {
+    suspend fun login(email: String, password: String): Result<AccountLoginResult>
+    suspend fun register(email: String, password: String, displayName: String): Result<Unit>
+    suspend fun loadOnboardingProgress(): Result<OnboardingProgress?>
+    suspend fun saveOnboardingProgress(progress: OnboardingProgress): Result<Unit>
+    suspend fun saveOnboarding(
+        displayName: String,
+        selectedScript: String,
+        experience: String,
+        learningGoals: List<String>,
+    ): Result<Unit>
 }
 
-class FakeAuthRepository : AuthRepository {
-    override suspend fun login(email: String, password: String): Result<Unit> {
-        delay(1000)
-        return Result.success(Unit)
-    }
-
-    override suspend fun sendResetLink(email: String): Result<Unit> {
-        delay(1000)
-        return Result.success(Unit)
-    }
-
-    override suspend fun resetPassword(newPassword: String): Result<Unit> {
-        delay(1000)
-        return Result.success(Unit)
-    }
+interface AuthRepository {
+    suspend fun sendResetLink(email: String): Result<Unit>
 }
 
 object AuthValidator {
@@ -80,16 +84,4 @@ object AuthValidator {
         else -> null
     }
 
-    fun newPassword(value: String): String? = when {
-        value.length < 8 -> "Minimal 8 karakter."
-        !value.any { it.isLetter() } -> "Harus mengandung huruf."
-        !value.any { it.isDigit() } -> "Harus mengandung angka."
-        else -> null
-    }
-
-    fun confirmPassword(password: String, confirm: String): String? = when {
-        confirm.isEmpty() -> null
-        password != confirm -> "Kata sandi tidak sama."
-        else -> null
-    }
 }

@@ -2,11 +2,11 @@ package com.example.nusalingo.feature.auth.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.nusalingo.feature.auth.data.AccountLoginResult
 import com.example.nusalingo.feature.auth.data.AccountRepository
 import com.example.nusalingo.feature.auth.data.AuthRepository
 import com.example.nusalingo.feature.auth.data.AuthValidator
 import com.example.nusalingo.feature.auth.data.FirebaseAccountRepository
-import com.example.nusalingo.feature.auth.data.FakeAuthRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
@@ -18,7 +18,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 sealed interface LoginEvent {
-    data object LoginSuccess : LoginEvent
+    data class LoginSuccess(val account: AccountLoginResult) : LoginEvent
 }
 
 class LoginViewModel(
@@ -49,9 +49,9 @@ class LoginViewModel(
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, errorMessage = null) }
             repository.login(s.email.trim(), s.password)
-                .onSuccess {
+                .onSuccess { account ->
                     _state.update { it.copy(isLoading = false) }
-                    _events.send(LoginEvent.LoginSuccess)
+                    _events.send(LoginEvent.LoginSuccess(account))
                 }
                 .onFailure { e ->
                     _state.update {
@@ -77,7 +77,7 @@ sealed interface ForgotPasswordEvent {
 }
 
 class ForgotPasswordViewModel(
-    private val repository: AuthRepository = FakeAuthRepository(),
+    private val repository: AuthRepository = FirebaseAccountRepository(),
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ForgotPasswordUiState())
@@ -124,77 +124,6 @@ class ForgotPasswordViewModel(
                 delay(1000)
             }
             _state.update { it.copy(resendSeconds = 0) }
-        }
-    }
-}
-
-data class ResetPasswordUiState(
-    val password: String = "",
-    val confirm: String = "",
-    val passwordError: String? = null,
-    val confirmError: String? = null,
-    val isLoading: Boolean = false,
-    val errorMessage: String? = null,
-) {
-    val canSubmit: Boolean
-        get() = AuthValidator.newPassword(password) == null &&
-                confirm.isNotEmpty() && password == confirm
-}
-
-sealed interface ResetPasswordEvent {
-    data object Success : ResetPasswordEvent
-}
-
-class ResetPasswordViewModel(
-    private val repository: AuthRepository = FakeAuthRepository(),
-) : ViewModel() {
-
-    private val _state = MutableStateFlow(ResetPasswordUiState())
-    val state: StateFlow<ResetPasswordUiState> = _state.asStateFlow()
-
-    private val _events = Channel<ResetPasswordEvent>(Channel.BUFFERED)
-    val events = _events.receiveAsFlow()
-
-    fun onPasswordChange(value: String) = _state.update {
-        it.copy(
-            password = value,
-            passwordError = null,
-            confirmError = AuthValidator.confirmPassword(value, it.confirm),
-            errorMessage = null
-        )
-    }
-
-    fun onConfirmChange(value: String) = _state.update {
-        it.copy(
-            confirm = value,
-            confirmError = AuthValidator.confirmPassword(it.password, value),
-            errorMessage = null
-        )
-    }
-
-    fun submit() {
-        val s = _state.value
-        if (s.isLoading) return
-
-        val passError = AuthValidator.newPassword(s.password)
-        val confirmError = if (s.password != s.confirm) "Kata sandi tidak sama." else null
-        if (passError != null || confirmError != null) {
-            _state.update { it.copy(passwordError = passError, confirmError = confirmError) }
-            return
-        }
-
-        viewModelScope.launch {
-            _state.update { it.copy(isLoading = true, errorMessage = null) }
-            repository.resetPassword(s.password)
-                .onSuccess {
-                    _state.update { it.copy(isLoading = false) }
-                    _events.send(ResetPasswordEvent.Success)
-                }
-                .onFailure { e ->
-                    _state.update {
-                        it.copy(isLoading = false, errorMessage = e.message ?: "Gagal menyimpan kata sandi.")
-                    }
-                }
         }
     }
 }
