@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "324735446260",
+    "project_id": "nusalingo-4175a",
+    "storage_b  ucket": "nusalingo-4175a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:324735446260:android:370d68d576f02539a7c2a1",
+        "android_client_info": {
+          "package_name": "com.example.nusalingo"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "324735446260-d93a6odhnbgcb9qgrr7d54a6ubu1r3nf.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.nusalingo",
+            "certificate_hash": "da5713d16cefe13dfb47958bb6ef36e2c1f69d7c"
+          }
+        },
+        {
+          "client_id": "324735446260-qdlhu6v11kd3s7ipffo6s5pomqu5dthk.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyADl8XuEYf5BPKgvTXaf60Aj-aOe1T75mk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "324735446260-qdlhu6v11kd3s7ipffo6s5pomqu5dthk.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,5 +1,10 @@
 package com.example.nusalingo.navigation
 
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
@@ -22,7 +27,31 @@ fun NusalingoNavigation(
     NavHost(
         navController = navController,
         startDestination = startDestination,
-        modifier = modifier
+        modifier = modifier,
+        enterTransition = {
+            fadeIn(tween(420)) + slideInHorizontally(
+                initialOffsetX = { it / 12 },
+                animationSpec = tween(420),
+            )
+        },
+        exitTransition = {
+            fadeOut(tween(260)) + slideOutHorizontally(
+                targetOffsetX = { -it / 16 },
+                animationSpec = tween(260),
+            )
+        },
+        popEnterTransition = {
+            fadeIn(tween(360)) + slideInHorizontally(
+                initialOffsetX = { -it / 16 },
+                animationSpec = tween(360),
+            )
+        },
+        popExitTransition = {
+            fadeOut(tween(240)) + slideOutHorizontally(
+                targetOffsetX = { it / 16 },
+                animationSpec = tween(240),
+            )
+        },
     ) {
         authNavGraph(navController)
 

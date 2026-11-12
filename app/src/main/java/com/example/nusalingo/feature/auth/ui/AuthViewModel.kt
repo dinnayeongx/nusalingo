@@ -2,8 +2,10 @@ package com.example.nusalingo.feature.auth.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.nusalingo.feature.auth.data.AccountRepository
 import com.example.nusalingo.feature.auth.data.AuthRepository
 import com.example.nusalingo.feature.auth.data.AuthValidator
+import com.example.nusalingo.feature.auth.data.FirebaseAccountRepository
 import com.example.nusalingo.feature.auth.data.FakeAuthRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
@@ -20,7 +22,7 @@ sealed interface LoginEvent {
 }
 
 class LoginViewModel(
-    private val repository: AuthRepository = FakeAuthRepository(),
+    private val repository: AccountRepository = FirebaseAccountRepository(),
 ) : ViewModel()
 {
     private val _state = MutableStateFlow(LoginUiState())
