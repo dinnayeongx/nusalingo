@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.nusalingo.R
+import com.example.nusalingo.feature.auth.data.AccountLoginResult
 import com.example.nusalingo.feature.auth.ui.LoginEvent
 import com.example.nusalingo.feature.auth.ui.LoginUiState
 import com.example.nusalingo.feature.auth.ui.LoginViewModel
@@ -48,7 +49,7 @@ import com.example.nusalingo.ui.theme.NusalingoColors
 
 @Composable
 fun LoginRoute(
-    onLoginSuccess: () -> Unit,
+    onLoginSuccess: (AccountLoginResult) -> Unit,
     onForgotPassword: () -> Unit,
     onRegister: () -> Unit,
     onContinueAsGuest: () -> Unit,
@@ -59,7 +60,7 @@ fun LoginRoute(
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
             when (event) {
-                LoginEvent.LoginSuccess -> onLoginSuccess()
+                is LoginEvent.LoginSuccess -> onLoginSuccess(event.account)
             }
         }
     }
