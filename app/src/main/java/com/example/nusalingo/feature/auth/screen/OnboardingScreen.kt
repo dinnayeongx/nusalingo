@@ -15,6 +15,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -28,7 +29,10 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.GenericShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.RadioButtonUnchecked
 import androidx.compose.material3.Card
@@ -46,9 +50,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -80,6 +84,22 @@ private val goalOptions = listOf(
     "Mengisi waktu luang",
     "Lainnya",
 )
+
+private val questionBubbleShape = GenericShape { size, _ ->
+    val tailWidth = size.width * 0.05f
+    val tailTop = size.height * 0.22f
+    val tailPoint = size.height * 0.34f
+    val tailBottom = size.height * 0.46f
+
+    moveTo(tailWidth, 0f)
+    lineTo(size.width, 0f)
+    lineTo(size.width, size.height)
+    lineTo(tailWidth, size.height)
+    lineTo(tailWidth, tailBottom)
+    lineTo(0f, tailPoint)
+    lineTo(tailWidth, tailTop)
+    close()
+}
 
 @Composable
 fun OnboardingRoute(onCompleted: () -> Unit) {
@@ -145,18 +165,22 @@ fun OnboardingScreen(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             if (state.step > 0 && state.step < 3) {
-                Text(
-                    text = "‹",
+                Box(
                     modifier = Modifier
-                        .clip(RoundedCornerShape(12.dp))
+                        .size(40.dp)
+                        .clip(CircleShape)
                         .background(NusalingoColors.ActionPrimary)
-                        .clickable(onClick = onBack)
-                        .padding(horizontal = 13.dp, vertical = 4.dp),
-                    color = NusalingoColors.TextInverse,
-                    fontSize = 26.sp,
-                    fontWeight = FontWeight.Bold,
-                )
-                Spacer(Modifier.size(12.dp))
+                        .clickable(onClick = onBack),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Kembali",
+                        modifier = Modifier.size(24.dp),
+                        tint = NusalingoColors.TextInverse,
+                    )
+                }
+                Spacer(Modifier.size(10.dp))
             }
             Text(
                 text = "Nusa",
@@ -215,7 +239,7 @@ fun OnboardingScreen(
         ) { step ->
             when (step) {
                 0 -> OnboardingQuestion(
-                    mascotRes = R.drawable.mascot_face,
+                    mascotRes = R.drawable.mascot_onboarding,
                     message = "Aksara apa yang ingin kamu pelajari?",
                     title = "Pilih Aksara Nusantara",
                 ) {
@@ -229,7 +253,7 @@ fun OnboardingScreen(
                     }
                 }
                 1 -> OnboardingQuestion(
-                    mascotRes = R.drawable.mascot_face,
+                    mascotRes = R.drawable.mascot_onboarding,
                     message = "Seberapa paham kamu tentang aksara ini?",
                     title = "Pilih kemampuanmu",
                 ) {
@@ -243,7 +267,7 @@ fun OnboardingScreen(
                     }
                 }
                 2 -> OnboardingQuestion(
-                    mascotRes = R.drawable.mascot_face,
+                    mascotRes = R.drawable.mascot_onboarding,
                     message = "Kenapa kamu ingin belajar aksara Nusantara?",
                     title = "Sesuaikan tujuanmu",
                     subtitle = "Pilih satu atau beberapa tujuan.",
@@ -281,21 +305,24 @@ private fun OnboardingQuestion(
             Image(
                 painter = painterResource(mascotRes),
                 contentDescription = "Maskot NusaLingo",
-                modifier = Modifier.size(92.dp),
+                modifier = Modifier.size(148.dp),
             )
             Spacer(Modifier.size(10.dp))
             Box(
                 modifier = Modifier
                     .weight(1f)
-                    .clip(RoundedCornerShape(14.dp))
-                    .background(NusalingoColors.InputBackground)
-                    .padding(14.dp),
+                    .background(NusalingoColors.InputBackground, questionBubbleShape)
+                    .border(
+                        BorderStroke(2.dp, Color(0x998B5A2B)),
+                        questionBubbleShape,
+                    )
+                    .padding(start = 22.dp, end = 14.dp, top = 14.dp, bottom = 14.dp),
             ) {
                 Text(
                     text = message,
                     color = NusalingoColors.TextPrimary,
-                    fontSize = 14.sp,
-                    lineHeight = 19.sp,
+                    fontSize = 16.sp,
+                    lineHeight = 21.sp,
                     fontWeight = FontWeight.Bold,
                 )
             }
@@ -368,88 +395,129 @@ private fun OnboardingComplete() {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = 12.dp),
+            .padding(bottom = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(10.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(248.dp),
+                .height(356.dp),
             contentAlignment = Alignment.Center,
         ) {
             CelebrationConfetti(Modifier.fillMaxSize())
             Image(
                 painter = painterResource(R.drawable.mascot_jump),
                 contentDescription = "Maskot NusaLingo merayakan onboarding selesai",
-                modifier = Modifier.size(224.dp),
+                modifier = Modifier
+                    .size(270.dp)
+                    .offset(y = 40.dp),
             )
             Card(
                 modifier = Modifier
                     .align(Alignment.TopCenter)
-                    .offset(x = 92.dp, y = 28.dp),
-                shape = RoundedCornerShape(12.dp),
-                border = BorderStroke(1.dp, NusalingoColors.LogoLingo),
+                    .offset(x = 100.dp, y = 108.dp),
+                shape = questionBubbleShape,
+                border = BorderStroke(2.dp, Color(0x998B5A2B)),
                 colors = CardDefaults.cardColors(containerColor = NusalingoColors.InputBackground),
             ) {
                 Text(
                     text = "selesai!",
-                    modifier = Modifier.padding(horizontal = 13.dp, vertical = 7.dp),
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 9.dp),
                     color = NusalingoColors.ActionPrimary,
-                    fontSize = 14.sp,
+                    fontSize = 16.sp,
                     fontWeight = FontWeight.ExtraBold,
                 )
             }
         }
-        AffirmationCard(
-            title = "Mahir Membaca & Menulis Aksara",
-            subtitle = "Latihan gesture tulis tangan dan pelafalan tanpa beban",
-        )
-        AffirmationCard(
-            title = "Bangun Kebiasaan Belajar",
-            subtitle = "Pengingat harian, tantangan seru, dan sistem XP",
-        )
-        AffirmationCard(
-            title = "Kuasai Berbagai Aksara Nusantara",
-            subtitle = "Mulai dari Aksara Jawa, Sunda, Bali, hingga Lontara",
-        )
+        OnboardingBenefitsCard()
     }
 }
 
 @Composable
-private fun AffirmationCard(
-    title: String,
-    subtitle: String,
-) {
+private fun OnboardingBenefitsCard() {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(15.dp),
-        border = BorderStroke(1.dp, NusalingoColors.InputBorder),
+        shape = RoundedCornerShape(20.dp),
+        border = BorderStroke(1.dp, NusalingoColors.ActionSecondary.copy(alpha = 0.22f)),
         colors = CardDefaults.cardColors(containerColor = NusalingoColors.InputBackground),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 9.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(3.dp),
+                .padding(horizontal = 14.dp, vertical = 8.dp),
         ) {
+            AffirmationRow(
+                title = "Mahir Membaca & Menulis Aksara",
+                subtitle = "Latihan tulis tangan dan pelafalan tanpa beban",
+            )
+            BenefitDivider()
+            AffirmationRow(
+                title = "Bangun Kebiasaan Belajar",
+                subtitle = "Pengingat harian, tantangan seru, dan sistem XP",
+            )
+            BenefitDivider()
+            AffirmationRow(
+                title = "Kuasai Berbagai Aksara Nusantara",
+                subtitle = "Mulai dari Jawa, Sunda, Bali, hingga Lontara",
+            )
+        }
+    }
+}
+
+@Composable
+private fun AffirmationRow(
+    title: String,
+    subtitle: String,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Box(
+            modifier = Modifier
+                .size(32.dp)
+                .clip(CircleShape)
+                .background(NusalingoColors.ActionSecondary.copy(alpha = 0.12f)),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.CheckCircle,
+                contentDescription = null,
+                modifier = Modifier.size(20.dp),
+                tint = NusalingoColors.ActionSecondary,
+            )
+        }
+        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(
                 text = title,
-                textAlign = TextAlign.Center,
                 color = NusalingoColors.ActionPrimary,
-                fontSize = 14.sp,
+                fontSize = 13.sp,
+                lineHeight = 17.sp,
                 fontWeight = FontWeight.ExtraBold,
             )
             Text(
                 text = subtitle,
-                textAlign = TextAlign.Center,
                 color = NusalingoColors.TextSecondary,
-                fontSize = 12.sp,
-                lineHeight = 16.sp,
+                fontSize = 11.sp,
+                lineHeight = 15.sp,
             )
         }
     }
+}
+
+@Composable
+private fun BenefitDivider() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(1.dp)
+            .background(NusalingoColors.InputBorder),
+    )
 }
 
 @Composable

@@ -55,7 +55,10 @@ object AuthValidator {
         return when {
             name.isEmpty() -> "Nama tidak boleh kosong."
             name.length !in 2..50 -> "Nama harus terdiri dari 2–50 karakter."
-            name.any { !(it.isLetter() || it.isWhitespace() || it == '-' || it == '\'') } ->
+            name.any {
+                it.isISOControl() ||
+                    !(it.isLetter() || it.isWhitespace() || it == '-' || it == '\'')
+            } ->
                 "Nama hanya boleh berisi huruf, spasi, tanda hubung, atau apostrof."
             name.none { it.isLetter() } -> "Nama harus mengandung huruf."
             else -> null

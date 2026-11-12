@@ -35,5 +35,9 @@ class AuthValidatorTest {
             "Nama hanya boleh berisi huruf, spasi, tanda hubung, atau apostrof.",
             AuthValidator.registrationName("Nusa<script>"),
         )
+        assertEquals(
+            "Nama hanya boleh berisi huruf, spasi, tanda hubung, atau apostrof.",
+            AuthValidator.registrationName("Nusa\tLingo"),
+        )
     }
 }
