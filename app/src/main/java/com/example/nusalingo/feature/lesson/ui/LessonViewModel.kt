@@ -1,77 +1,53 @@
 package com.example.nusalingo.feature.lesson.ui
 
-import androidx.lifecycle.ViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.nusalingo.data.local.AppDatabase
+import com.example.nusalingo.data.local.CharacterEntity
+import com.example.nusalingo.data.local.UserPreferences
+import com.example.nusalingo.feature.lesson.data.LessonRepository
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
-class LessonViewModel : ViewModel() {
+class LessonViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val _uiState = MutableStateFlow(LessonState())
-    val uiState: StateFlow<LessonState> = _uiState.asStateFlow()
+    private val repository = LessonRepository(
+        dao = AppDatabase.getDatabase(application).lessonDao(),
+        prefs = UserPreferences(application)
+    )
+
+    val selectedLanguage: StateFlow<String> = repository.selectedLanguage
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "Jawa")
+
+    val selectedCategory: StateFlow<String> = repository.selectedCategory
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "Aksara Dasar")
+
+    val completedLessons: StateFlow<List<String>> = repository.completedLessons
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     init {
-        loadLessons()
-    }
-
-    private fun loadLessons() {
-        _uiState.update { currentState ->
-            currentState.copy(
-                lessonList = listOf(
-                    "Carakan 1",
-                    "Carakan 2",
-                    "Carakan 3",
-                    "Sandhangan Swara",
-                    "Sandhangan Panyigeg Wanda",
-                    "Merangkai Kata"
-                ),
-                currentDetail = getDetailForLesson("Carakan 1")
-            )
+        viewModelScope.launch {
+            repository.seedIfEmpty()
         }
     }
 
-    fun selectLesson(title: String) {
-        _uiState.update { currentState ->
-            currentState.copy(
-                currentDetail = getDetailForLesson(title)
-            )
-        }
+    fun getCharacters(lesson: String): Flow<List<CharacterEntity>> {
+        return repository.getCharacters(lesson)
     }
 
-    private fun getDetailForLesson(title: String): LessonDetail {
-        if (title != "Carakan 1") {
-            return LessonDetail(
-                title = title,
-                description = "Materi ini belum tersedia.",
-                chartSections = emptyList(),
-                isAvailable = false
-            )
-        }
+    fun selectLanguage(language: String) {
+        viewModelScope.launch { repository.saveLanguage(language) }
+    }
 
-        val carakanSection = ScriptChartGroup(
-            title = "AKSARA CARAKAN (nglegena)",
-            rows = listOf(
-                listOf("ꦲ" to "ha", "ꦤ" to "na", "ꦕ" to "ca", "ꦫ" to "ra", "ꦏ" to "ka"),
-                listOf("ꦢ" to "da", "ꦠ" to "ta", "ꦱ" to "sa", "ꦮ" to "wa", "ꦭ" to "la"),
-                listOf("ꦥ" to "pa", "ꦝ" to "dha", "ꦗ" to "ja", "ꦪ" to "ya", "ꦚ" to "nya"),
-                listOf("ꦩ" to "ma", "ꦒ" to "ga", "ꦧ" to "ba", "ꦛ" to "tha", "ꦔ" to "nga")
-            )
-        )
+    fun selectCategory(category: String) {
+        viewModelScope.launch { repository.saveCategory(category) }
+    }
 
-        val pasanganSection = ScriptChartGroup(
-            title = "AKSARA PASANGAN (mati)",
-            rows = listOf(
-                listOf("꧀ꦲ" to "h", "꧀ꦤ" to "n", "꧀ꦕ" to "c", "꧀ꦫ" to "r", "꧀ꦏ" to "k"),
-                listOf("꧀ꦢ" to "d", "꧀ꦠ" to "t", "꧀ꦱ" to "s", "꧀ꦮ" to "w", "꧀ꦭ" to "l")
-            )
-        )
-
-        return LessonDetail(
-            title = title,
-            description = "Kenali sistem penulisan tradisional dan aksara utama dalam budaya Jawa",
-            chartSections = listOf(carakanSection, pasanganSection),
-            isAvailable = true
-        )
+    fun completeLesson(lesson: String, learnedCount: Int) {
+        viewModelScope.launch { repository.markCompleted(lesson, learnedCount) }
     }
 }

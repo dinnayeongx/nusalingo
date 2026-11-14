@@ -1,4 +1,5 @@
 package com.example.nusalingo.navigation
+import android.net.Uri
 
 object Routes {
     const val LOGIN = "auth/login"
@@ -12,7 +13,7 @@ object Routes {
     const val HOME = "home"
     const val SELECT_SCRIPT = "select_script"
     const val LEARN = "learn"
-    const val LESSON_DETAIL = "lesson_detail/{lessonId}"
+    const val LESSON_DETAIL = "lesson_detail/{title}"
     const val PRACTICE = "practice"
 
     const val LEVEL_SESSION = "level/{levelId}"
@@ -20,7 +21,7 @@ object Routes {
 
     fun levelSession(levelId: Int) = "level/$levelId"
     fun practiceQuiz(quizType: String) = "practice/quiz/$quizType"
-    fun lessonDetail(lessonId: Int) = "lesson_detail/$lessonId"
+    fun lessonDetail(title: String) = "lesson_detail/${Uri.encode(title)}"
     fun landing(displayName: String) = "auth/landing/${android.net.Uri.encode(displayName)}"
     fun onboarding(displayName: String) = "auth/onboarding/${android.net.Uri.encode(displayName)}"
 

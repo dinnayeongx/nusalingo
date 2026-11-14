@@ -9,6 +9,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
 import androidx.navigation.compose.composable
 import com.example.nusalingo.feature.home.screen.HomeRoute
 import com.example.nusalingo.feature.home.screen.PilihAksaraRoute
@@ -68,19 +70,25 @@ fun NusalingoNavigation(
                 onSelect = { navController.navigate(Routes.levelSession(1)) }
             )
         }
-
         composable(Routes.LEARN) {
             LessonRoute(
                 onLessonSelected = { lessonTitle ->
-                    navController.navigate(Routes.lessonDetail(1))
+                    navController.navigate(
+                        Routes.lessonDetail(lessonTitle)
+                    )
                 }
             )
         }
 
-        composable(Routes.LESSON_DETAIL) {
+        composable(
+            route = Routes.LESSON_DETAIL,
+            arguments = listOf(navArgument("title") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val title = backStackEntry.arguments?.getString("title") ?: ""
+
             LessonDetailRoute(
-                onBack = { navController.popBackStack() },
-                onStartLesson = { /* Alur memulai materi */ }
+                lessonTitle = title,
+                onBack = { navController.popBackStack() }
             )
         }
 
