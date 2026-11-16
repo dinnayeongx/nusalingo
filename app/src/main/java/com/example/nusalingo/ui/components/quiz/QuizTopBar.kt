@@ -16,9 +16,27 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.nusalingo.ui.theme.NunitoFont
 import com.example.nusalingo.ui.theme.NusalingoColors
+
+@Composable
+fun QuizScreenTitle(
+    text: String,
+    modifier: Modifier = Modifier,
+    fontSize: TextUnit = 24.sp
+) {
+    Text(
+        text = text,
+        modifier = modifier,
+        fontFamily = NunitoFont,
+        fontSize = fontSize,
+        fontWeight = FontWeight.ExtraBold,
+        color = NusalingoColors.TextPrimary
+    )
+}
 
 @Composable
 fun QuizTopBar(

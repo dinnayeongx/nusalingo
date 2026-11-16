@@ -32,6 +32,7 @@ import com.example.nusalingo.ui.components.quiz.AnswerSlotRow
 import com.example.nusalingo.ui.components.quiz.BubbleQuestion
 import com.example.nusalingo.ui.components.quiz.BubbleType
 import com.example.nusalingo.ui.components.quiz.QuizAnswerState
+import com.example.nusalingo.ui.components.quiz.QuizScreenTitle
 import com.example.nusalingo.ui.components.quiz.QuizTopBar
 import com.example.nusalingo.ui.theme.NusalingoColors
 
@@ -116,12 +117,7 @@ fun ArrangeWordScreen(
 
             Spacer(Modifier.height(20.dp))
 
-            Text(
-                text = "Susun Balok Aksara menjadi Kata",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.ExtraBold,
-                color = NusalingoColors.TextPrimary
-            )
+            QuizScreenTitle(text = "Susun Balok Aksara menjadi Kata")
 
             Spacer(Modifier.height(32.dp))
 
@@ -212,7 +208,7 @@ fun ArrangeWordScreen(
                         containerColor = if (isCorrect) {
                             Color(0xFF16AD61)
                         } else {
-                            NusalingoColors.ActionPrimary
+                            Color(0xFFD64545)
                         },
                         onClick = {
                             if (questionIndex < arrangeQuestions.lastIndex) {
