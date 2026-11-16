@@ -71,7 +71,9 @@ fun AlihAksaraScreen(
     onWrongAnswers: (List<QuizReviewAnswer>) -> Unit = {},
     questionIndices: List<Int> = AlihAksaraQuestions.indices.toList(),
     awardXp: Boolean = true,
-    attemptId: Int = 0
+    attemptId: Int = 0,
+    progressOverride: Float? = null,
+    xpOverride: Int? = null
 ) {
     QuizAksaraContent(
         questions = AlihAksaraQuestions,
@@ -84,6 +86,8 @@ fun AlihAksaraScreen(
         questionIndices = questionIndices,
         awardXp = awardXp,
         attemptId = attemptId,
+        progressOverride = progressOverride,
+        xpOverride = xpOverride,
         onIncorrectQuestionIndices = { indices ->
             onWrongAnswers(
                 indices.map { index ->

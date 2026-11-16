@@ -75,7 +75,9 @@ fun QuizResultScreen(
     showStats: Boolean = true,
     totalXp: Int? = null,
     secondaryActionText: String? = null,
-    continueEnabled: Boolean = true
+    continueEnabled: Boolean = true,
+    resultTitle: String = "Misi Selesai!",
+    resultDescription: String = "Hebat! Kamu berhasil menuntaskan tantangan aksara ini."
 ) {
     val accuracy = if (totalQuestions > 0) {
         correctAnswers * 100 / totalQuestions
@@ -122,7 +124,7 @@ fun QuizResultScreen(
                 painter = painterResource(id = R.drawable.mascot_jump),
                 contentDescription = "Maskot merayakan keberhasilan",
                 modifier = Modifier
-                    .size(240.dp)
+                    .size(200.dp)
                     .scale(mascotScale),
                 contentScale = ContentScale.Fit
             )
@@ -130,7 +132,7 @@ fun QuizResultScreen(
             Spacer(Modifier.height(18.dp))
 
             Text(
-                text = "Misi Selesai!",
+                text = resultTitle,
                 fontSize = 32.sp,
                 fontWeight = FontWeight.ExtraBold,
                 color = NusalingoColors.TextPrimary
@@ -139,7 +141,7 @@ fun QuizResultScreen(
             Spacer(Modifier.height(6.dp))
 
             Text(
-                text = "Hebat! Kamu berhasil menuntaskan tantangan aksara ini.",
+                text = resultDescription,
                 fontSize = 15.sp,
                 color = NusalingoColors.TextSecondary,
                 textAlign = TextAlign.Center
@@ -235,13 +237,13 @@ fun QuizResultScreen(
                 onClick = onContinue,
                 enabled = continueEnabled
             )
-            if (secondaryActionText != null) {
-                Spacer(Modifier.height(12.dp))
-                SecondaryButton(
-                    text = secondaryActionText,
-                    onClick = onHome
-                )
-            }
+
+            Spacer(Modifier.height(12.dp))
+
+            SecondaryButton(
+                text = secondaryActionText ?: "Kembali ke Home",
+                onClick = onHome
+            )
         }
 
         CelebrationConfetti(key = 1)

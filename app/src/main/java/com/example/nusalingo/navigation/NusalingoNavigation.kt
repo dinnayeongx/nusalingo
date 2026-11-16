@@ -14,6 +14,7 @@ import androidx.navigation.navArgument
 import androidx.navigation.compose.composable
 import com.example.nusalingo.feature.home.screen.HomeRoute
 import com.example.nusalingo.feature.home.screen.PilihAksaraRoute
+import com.example.nusalingo.feature.level.screen.LevelQuizRoute
 import com.example.nusalingo.feature.lesson.screen.LessonDetailRoute
 import com.example.nusalingo.feature.lesson.screen.LessonRoute
 import com.example.nusalingo.feature.practice.screen.PracticeRoute
@@ -64,12 +65,34 @@ fun NusalingoNavigation(
             )
         }
 
-        composable(Routes.SELECT_SCRIPT) {
-            PilihAksaraRoute(
-                onBack = { navController.popBackStack() },
-                onSelect = { navController.navigate(Routes.levelSession(1)) }
+        composable(
+            route = Routes.LEVEL_SESSION,
+            arguments = listOf(navArgument("levelId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val levelId = backStackEntry.arguments?.getInt("levelId") ?: 1
+            LevelQuizRoute(
+                levelId = levelId,
+                onBack = { navController.popBackStack() }
             )
         }
+
+
+        composable(Routes.SELECT_SCRIPT) {
+            PilihAksaraRoute(
+                onBack = {
+                    navController.popBackStack()
+                },
+                onSelect = {
+                    navController.navigate(Routes.HOME) {
+                        popUpTo(Routes.HOME) {
+                            inclusive = false
+                        }
+                        launchSingleTop = true
+                    }
+                }
+            )
+        }
+
         composable(Routes.LEARN) {
             LessonRoute(
                 onLessonSelected = { lessonTitle ->

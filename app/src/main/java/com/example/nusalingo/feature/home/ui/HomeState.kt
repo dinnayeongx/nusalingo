@@ -9,7 +9,10 @@ data class AksaraItem(
 
 data class LearningLevel(
     val levelNumber: Int,
-    val title: String
+    val title: String,
+    val completedCheckpoints: Int = 0,
+    val totalCheckpoints: Int = 3,
+    val isUnlocked: Boolean = false
 )
 
 data class HomeState(

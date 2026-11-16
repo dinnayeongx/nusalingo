@@ -75,7 +75,9 @@ fun WriteCharacterScreen(
     questionIndices: List<Int> = (0 until WRITE_CHARACTER_QUESTION_COUNT).toList(),
     awardXp: Boolean = true,
     attemptId: Int = 0,
-    onIncorrectQuestions: (List<Int>) -> Unit = {}
+    onIncorrectQuestions: (List<Int>) -> Unit = {},
+    progressOverride: Float? = null,
+    xpOverride: Int? = null
 ) {
     require(questionIndices.isNotEmpty()) { "At least one writing question is required." }
 
@@ -109,8 +111,8 @@ fun WriteCharacterScreen(
     val currentQuestion = writingQuestions[currentQuestionIndex]
     val xpEarned = if (awardXp) correctAnswers * XP_PER_CORRECT_ANSWER else 0
     val progress = (
-        questionIndex + if (checked) 1 else 0
-        ).toFloat() / questionIndices.size
+            questionIndex + if (checked) 1 else 0
+            ).toFloat() / questionIndices.size
     val density = LocalDensity.current
     val strokeWidthPx = with(density) { 10.dp.toPx() }
     val strokeColor = when (answerIsCorrect) {
@@ -131,8 +133,8 @@ fun WriteCharacterScreen(
                 .padding(horizontal = 20.dp)
         ) {
             QuizTopBar(
-                progress = progress,
-                xp = xpEarned,
+                progress = progressOverride ?: progress,
+                xp = xpOverride ?: xpEarned,
                 onExit = onExit
             )
 
@@ -344,9 +346,7 @@ fun WriteCharacterScreen(
                             }
                         }
                     },
-                    enabled = strokes.isNotEmpty() &&
-                        canvasSize.width > 0 &&
-                        canvasSize.height > 0,
+                    enabled = strokes.isNotEmpty() && canvasSize.width > 0 && canvasSize.height > 0,
                     modifier = Modifier.padding(horizontal = 20.dp)
                 )
             }

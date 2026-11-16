@@ -1,40 +1,55 @@
 package com.example.nusalingo.feature.home.ui
 
-import androidx.lifecycle.ViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.nusalingo.data.LevelQuizConfig
+import com.example.nusalingo.data.local.UserPreferences
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
-class HomeViewModel : ViewModel() {
+class HomeViewModel(application: Application) : AndroidViewModel(application) {
+    private val preferences = UserPreferences(application)
 
-    private val _uiState = MutableStateFlow(HomeState())
-    val uiState: StateFlow<HomeState> = _uiState.asStateFlow()
-
-    init {
-        loadData()
-    }
-
-    private fun loadData() {
-        _uiState.update { currentState ->
-            currentState.copy(
-                levelList = listOf(
-                    LearningLevel(1, "Mengenal Aksara"),
-                    LearningLevel(2, "Menggabungkan Aksara"),
-                    LearningLevel(3, "Membangun Kalimat")
-                ),
-                aksaraList = listOf(
-                    AksaraItem(id = "jawa", name = "Aksara Jawa", isAvailable = true, progressText = "3 to 3"),
-                    AksaraItem(id = "madura", name = "Aksara Madura", isAvailable = false, progressText = "0 to 0"),
-                    AksaraItem(id = "bali", name = "Aksara Bali", isAvailable = false, progressText = "0 to 0")
-                )
+    val uiState = combine(
+        preferences.language,
+        preferences.completedLevelCheckpoints
+    ) { language, completed ->
+        val levels = LevelQuizConfig.levels.map { level ->
+            val levelCheckpoints = LevelQuizConfig.checkpointsForLevel(level.id)
+            val completedCount = levelCheckpoints.count { it.id in completed }
+            val unlocked = when (level.id) {
+                1 -> true
+                else -> LevelQuizConfig.checkpointsForLevel(level.id - 1)
+                    .all { it.id in completed }
+            }
+            LearningLevel(
+                levelNumber = level.id,
+                title = level.title,
+                completedCheckpoints = completedCount,
+                totalCheckpoints = levelCheckpoints.size,
+                isUnlocked = unlocked
             )
         }
-    }
 
-    fun selectAksara(aksara: AksaraItem) {
-        if (aksara.isAvailable) {
-            _uiState.update { it.copy(selectedAksaraName = aksara.name) }
+        HomeState(
+            selectedAksaraName = "Aksara $language",
+            levelList = levels,
+            aksaraList = listOf(
+                AksaraItem("jawa", "Aksara Jawa", true, "3 checkpoint"),
+                AksaraItem("madura", "Aksara Madura", false, "Segera hadir"),
+                AksaraItem("bali", "Aksara Bali", false, "Segera hadir")
+            )
+        )
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HomeState())
+
+    fun selectAksara(item: AksaraItem) {
+        if (item.id != "jawa") return
+
+        viewModelScope.launch {
+            preferences.saveLanguage("Jawa")
         }
     }
 }

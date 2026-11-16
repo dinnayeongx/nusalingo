@@ -72,7 +72,9 @@ internal fun QuizAksaraContent(
     onIncorrectQuestionIndices: ((List<Int>) -> Unit)? = null,
     questionIndices: List<Int> = questions.indices.toList(),
     awardXp: Boolean = true,
-    attemptId: Int = 0
+    attemptId: Int = 0,
+    progressOverride: Float? = null,
+    xpOverride: Int? = null
 ) {
     val scrollState = rememberScrollState()
     require(questionIndices.isNotEmpty()) { "At least one quiz question is required." }
@@ -116,8 +118,8 @@ internal fun QuizAksaraContent(
                 .verticalScroll(scrollState)
         ) {
             QuizTopBar(
-                progress = progress,
-                xp = xp,
+                progress = progressOverride ?: progress,
+                xp = xpOverride ?: xp,
                 onExit = onExit
             )
 

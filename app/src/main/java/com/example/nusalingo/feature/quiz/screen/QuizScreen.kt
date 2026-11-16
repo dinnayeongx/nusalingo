@@ -73,7 +73,9 @@ fun QuizScreen(
     questionIndices: List<Int> = characterQuestions.indices.toList(),
     awardXp: Boolean = true,
     attemptId: Int = 0,
-    onIncorrectQuestions: (List<Int>) -> Unit = {}
+    onIncorrectQuestions: (List<Int>) -> Unit = {},
+    progressOverride: Float? = null,
+    xpOverride: Int? = null
 ) {
     require(questionIndices.isNotEmpty()) { "At least one quiz question is required." }
 
@@ -91,8 +93,8 @@ fun QuizScreen(
     val isCorrect = selectedAnswer == question.answer
     val xp = if (awardXp) correctAnswers * XP_PER_CORRECT_ANSWER else 0
     val progress = (
-        questionIndex + if (checked) 1 else 0
-        ).toFloat() / questionIndices.size
+            questionIndex + if (checked) 1 else 0
+            ).toFloat() / questionIndices.size
 
     Box(
         modifier = Modifier
@@ -117,8 +119,8 @@ fun QuizScreen(
                     .padding(horizontal = 20.dp)
             ) {
                 QuizTopBar(
-                    progress = progress,
-                    xp = xp,
+                    progress = progressOverride ?: progress,
+                    xp = xpOverride ?: xp,
                     onExit = onExit
                 )
 

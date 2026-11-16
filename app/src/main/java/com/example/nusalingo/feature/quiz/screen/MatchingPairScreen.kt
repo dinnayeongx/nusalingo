@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -35,9 +34,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalDensity
 import com.example.nusalingo.ui.components.quiz.MatchingPairCard
 import com.example.nusalingo.ui.components.quiz.QuizScreenTitle
@@ -104,7 +101,11 @@ fun MatchingPairsScreen(
         correctAnswers: Int,
         totalQuestions: Int,
         xpEarned: Int
-    ) -> Unit
+    ) -> Unit,
+    levelMode: Boolean = false,
+    onLevelQuestionFinished: ((Boolean) -> Unit)? = null,
+    progressOverride: Float? = null,
+    xpOverride: Int? = null
 ) {
     val context = LocalContext.current
     val soundPool = remember(context) {
@@ -122,7 +123,10 @@ fun MatchingPairsScreen(
     val loadedSoundIds = remember(soundPool) { mutableStateOf(setOf<Int>()) }
     var pendingSoundIds by remember(soundPool) { mutableStateOf(emptyList<Int>()) }
     val pairs = remember { matchingPairs.shuffled() }
-    val questionPages = remember(pairs) { pairs.chunked(PAIRS_PER_QUESTION) }
+    val questionPages = remember(pairs, levelMode) {
+        val pages = pairs.chunked(PAIRS_PER_QUESTION)
+        if (levelMode) pages.take(1) else pages
+    }
 
     var questionIndex by remember { mutableIntStateOf(0) }
     var selectedCharacterIndex by remember { mutableIntStateOf(-1) }
@@ -139,9 +143,9 @@ fun MatchingPairsScreen(
         currentQuestion.map { it.reading }.shuffled()
     }
     val matchedInQuestion = currentQuestion.count { it.id in matchedPairIds }
-    val completedQuestions = questionIndex +
-        if (matchedInQuestion == PAIRS_PER_QUESTION) 1 else 0
-    val progress = completedQuestions.toFloat() / TOTAL_QUESTIONS
+    val completedQuestions = questionIndex + if (matchedInQuestion == PAIRS_PER_QUESTION) 1 else 0
+    val totalQuestionPages = if (levelMode) 1 else TOTAL_QUESTIONS
+    val progress = completedQuestions.toFloat() / totalQuestionPages
     val xpEarned = matchedPairIds.count { it !in pairsInWrongMatches } * XP_PER_PAIR
 
     DisposableEffect(soundPool, context) {
@@ -202,7 +206,10 @@ fun MatchingPairsScreen(
     LaunchedEffect(questionIndex, matchedInQuestion) {
         if (matchedInQuestion == PAIRS_PER_QUESTION) {
             delay(MATCH_FLASH_DURATION_MS.toLong())
-            if (questionIndex == TOTAL_QUESTIONS - 1) {
+            if (levelMode) {
+                val perfect = currentQuestion.none { it.id in pairsInWrongMatches }
+                onLevelQuestionFinished?.invoke(perfect)
+            } else if (questionIndex == TOTAL_QUESTIONS - 1) {
                 onFinish(TOTAL_QUESTIONS, TOTAL_QUESTIONS, xpEarned)
             } else {
                 questionIndex++
@@ -245,8 +252,8 @@ fun MatchingPairsScreen(
             selectedReadingIndex = -1
         } else {
             pairsInWrongMatches = pairsInWrongMatches +
-                selectedPair.id +
-                selectedReadingPair.id
+                    selectedPair.id +
+                    selectedReadingPair.id
             wrongCharacterIndex = selectedCharacterIndex
             wrongReadingIndex = selectedReadingIndex
             wrongFlashId++
@@ -287,8 +294,8 @@ fun MatchingPairsScreen(
                 .navigationBarsPadding()
         ) {
             QuizTopBar(
-                progress = progress,
-                xp = xpEarned,
+                progress = progressOverride ?: progress,
+                xp = xpOverride ?: xpEarned,
                 onExit = onExit
             )
 

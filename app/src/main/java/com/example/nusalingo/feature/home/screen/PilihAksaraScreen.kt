@@ -23,33 +23,6 @@ import com.example.nusalingo.feature.home.ui.HomeState
 import com.example.nusalingo.feature.home.ui.HomeViewModel
 
 @Composable
-fun PilihAksaraScreen(onBack: () -> Unit, onSelect: () -> Unit) {
-    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 24.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 20.dp)) {
-            Text("‹", modifier = Modifier.clickable(onClick = onBack).padding(end = 16.dp), fontSize = 42.sp, color = Color.Black)
-            Text("Pilih Aksara Daerah", fontFamily = NunitoFont, fontSize = 26.sp, fontWeight = FontWeight.ExtraBold, color = NusalingoColors.TextPrimary)
-        }
-        listOf("Aksara Jawa" to true, "Aksara Madura" to false, "Aksara Bali" to false).forEach { (name, available) ->
-            Column(Modifier.fillMaxWidth().padding(bottom = 24.dp).clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)).background(NusalingoColors.CardCream)) {
-                Box(Modifier.fillMaxWidth().height(112.dp).padding(horizontal = 24.dp), contentAlignment = Alignment.CenterStart) {
-                    Text(name, fontFamily = NunitoFont, fontSize = 27.sp, fontWeight = FontWeight.Bold, color = NusalingoColors.ActionPrimary)
-                }
-                Column(Modifier.fillMaxWidth().background(Color.White).padding(horizontal = 24.dp, vertical = 12.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(if (available) "Tersedia" else "Terkunci", modifier = Modifier.weight(1f),
-                            fontFamily = NunitoFont, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.Black)
-                        Text(if (available) "3 to 3" else "0 to 0", fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                    }
-                    Spacer(Modifier.height(8.dp))
-                    Box(Modifier.fillMaxWidth().height(18.dp).clip(RoundedCornerShape(20.dp))
-                        .background(if (available) NusalingoColors.BrownAccent else NusalingoColors.Disabled))
-                }
-            }
-        }
-    }
-}
-
-@Composable
 fun PilihAksaraRoute(
     onBack: () -> Unit,
     onSelect: () -> Unit,
@@ -61,8 +34,10 @@ fun PilihAksaraRoute(
         state = state,
         onBack = onBack,
         onSelectAksara = { item ->
-            viewModel.selectAksara(item) // Memanggil fungsi di ViewModel
-            onSelect()
+            if (item.id == "jawa") {
+                viewModel.selectAksara(item)
+                onSelect()
+            }
         }
     )
 }
@@ -79,28 +54,89 @@ fun PilihAksaraScreen(
             Text("Pilih Aksara Daerah", fontFamily = NunitoFont, fontSize = 26.sp, fontWeight = FontWeight.ExtraBold, color = NusalingoColors.TextPrimary)
         }
 
-        // Menggunakan data aksaraList dari ViewModel
         state.aksaraList.forEach { item ->
+            val isEnabled = item.name.equals("Aksara Jawa", ignoreCase = true)
+
             Column(
-                Modifier
+                modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 24.dp)
-                    .clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp))
+                    .clip(
+                        RoundedCornerShape(
+                            topStart = 28.dp,
+                            topEnd = 28.dp
+                        )
+                    )
                     .background(NusalingoColors.CardCream)
-                    .clickable(enabled = item.isAvailable) { onSelectAksara(item) }
-            ) {
-                Box(Modifier.fillMaxWidth().height(112.dp).padding(horizontal = 24.dp), contentAlignment = Alignment.CenterStart) {
-                    Text(item.name, fontFamily = NunitoFont, fontSize = 27.sp, fontWeight = FontWeight.Bold, color = NusalingoColors.ActionPrimary)
-                }
-                Column(Modifier.fillMaxWidth().background(Color.White).padding(horizontal = 24.dp, vertical = 12.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(if (item.isAvailable) "Tersedia" else "Terkunci", modifier = Modifier.weight(1f),
-                            fontFamily = NunitoFont, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.Black)
-                        Text(item.progressText, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    .clickable(enabled = isEnabled) {
+                        if (isEnabled) {
+                            onSelectAksara(item)
+                        }
                     }
+            ) {
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .height(112.dp)
+                        .padding(horizontal = 24.dp),
+                    contentAlignment = Alignment.CenterStart
+                ) {
+                    Text(
+                        item.name,
+                        fontFamily = NunitoFont,
+                        fontSize = 27.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = if (isEnabled) {
+                            NusalingoColors.ActionPrimary
+                        } else {
+                            NusalingoColors.TextSecondary.copy(alpha = 0.5f)
+                        }
+                    )
+                }
+
+                Column(
+                    Modifier
+                        .fillMaxWidth()
+                        .background(Color.White)
+                        .padding(horizontal = 24.dp, vertical = 12.dp)
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            if (isEnabled) "Tersedia" else "Segera Hadir",
+                            modifier = Modifier.weight(1f),
+                            fontFamily = NunitoFont,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = if (isEnabled) {
+                                Color.Black
+                            } else {
+                                NusalingoColors.TextSecondary
+                            }
+                        )
+
+                        Text(
+                            if (isEnabled) item.progressText else "0 to 0",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = NusalingoColors.TextSecondary
+                        )
+                    }
+
                     Spacer(Modifier.height(8.dp))
-                    Box(Modifier.fillMaxWidth().height(18.dp).clip(RoundedCornerShape(20.dp))
-                        .background(if (item.isAvailable) NusalingoColors.BrownAccent else NusalingoColors.Disabled))
+
+                    Box(
+                        Modifier
+                            .fillMaxWidth()
+                            .height(18.dp)
+                            .clip(RoundedCornerShape(20.dp))
+                            .background(
+                                if (isEnabled) {
+                                    NusalingoColors.BrownAccent
+                                } else {
+                                    NusalingoColors.Disabled
+                                }
+                            )
+                    )
                 }
             }
         }

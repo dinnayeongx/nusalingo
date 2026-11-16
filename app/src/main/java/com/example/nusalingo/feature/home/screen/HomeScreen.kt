@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ChevronRight
+import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -59,17 +60,30 @@ fun HomeScreen(onExplore: () -> Unit, onLevel: (Int) -> Unit) {
 }
 
 @Composable
-fun LearningLevelCard(title: String, level: Int, onClick: () -> Unit) {
+fun LearningLevelCard(
+    title: String,
+    level: Int,
+    isUnlocked: Boolean = true,
+    completedCheckpoints: Int = 0,
+    totalCheckpoints: Int = 3,
+    onClick: () -> Unit
+) {
     Column(
         Modifier.fillMaxWidth().height(174.dp).clip(RoundedCornerShape(28.dp))
-            .background(NusalingoColors.CardYellow).clickable(onClick = onClick)
+            .background(if (isUnlocked) NusalingoColors.CardYellow else NusalingoColors.Disabled)
+            .clickable(enabled = isUnlocked, onClick = onClick)
     ) {
         Box(Modifier.fillMaxWidth().weight(1f).background(NusalingoColors.ActionPrimary)) {
             Text(title, Modifier.align(Alignment.TopStart).padding(start = 24.dp, top = 24.dp, end = 112.dp),
                 fontFamily = NunitoFont, fontWeight = FontWeight.Bold, fontSize = 23.sp,
                 lineHeight = 29.sp, color = Color.White, maxLines = 2, overflow = TextOverflow.Ellipsis)
-            Icon(Icons.Outlined.ChevronRight, contentDescription = null, tint = Color.White,
-                modifier = Modifier.align(Alignment.TopEnd).padding(top = 18.dp, end = 14.dp).size(30.dp))
+            if (isUnlocked) {
+                Icon(Icons.Outlined.ChevronRight, contentDescription = null, tint = Color.White,
+                    modifier = Modifier.align(Alignment.TopEnd).padding(top = 18.dp, end = 14.dp).size(30.dp))
+            } else {
+                Icon(Icons.Outlined.Lock, contentDescription = "Level terkunci", tint = Color.White,
+                    modifier = Modifier.align(Alignment.TopEnd).padding(top = 18.dp, end = 14.dp).size(26.dp))
+            }
             Image(
                 painter = painterResource(R.drawable.mascot_jump),
                 contentDescription = "Maskot NusaLingo",
@@ -77,8 +91,17 @@ fun LearningLevelCard(title: String, level: Int, onClick: () -> Unit) {
             )
         }
         Box(Modifier.fillMaxWidth().height(54.dp).padding(start = 24.dp), contentAlignment = Alignment.CenterStart) {
-            Text("Level $level", fontFamily = NunitoFont, fontSize = 22.sp,
-                fontWeight = FontWeight.Bold, color = NusalingoColors.ActionPrimary)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("Level $level", fontFamily = NunitoFont, fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold, color = NusalingoColors.ActionPrimary)
+                Spacer(Modifier.width(12.dp))
+                Text(
+                    "$completedCheckpoints/$totalCheckpoints checkpoint",
+                    fontFamily = NunitoFont,
+                    fontSize = 12.sp,
+                    color = NusalingoColors.TextSecondary
+                )
+            }
         }
     }
 }
@@ -100,7 +123,7 @@ fun HomeRoute(
 
 @Composable
 fun HomeScreen(
-    state: HomeState, // Menerima State dari ViewModel
+    state: HomeState,
     onExplore: () -> Unit,
     onLevel: (Int) -> Unit
 ) {
@@ -124,7 +147,14 @@ fun HomeScreen(
         Spacer(Modifier.height(16.dp))
 
         state.levelList.forEach { levelItem ->
-            LearningLevelCard(levelItem.title, levelItem.levelNumber) { onLevel(levelItem.levelNumber) }
+            LearningLevelCard(
+                title = levelItem.title,
+                level = levelItem.levelNumber,
+                isUnlocked = levelItem.isUnlocked,
+                completedCheckpoints = levelItem.completedCheckpoints,
+                totalCheckpoints = levelItem.totalCheckpoints,
+                onClick = { onLevel(levelItem.levelNumber) }
+            )
             Spacer(Modifier.height(16.dp))
         }
     }
