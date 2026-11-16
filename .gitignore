@@ -1,6 +1,7 @@
 *.iml
 .gradle
 /local.properties
+local.properties
 /.idea/caches
 /.idea/libraries
 /.idea/modules.xml
@@ -12,4 +13,16 @@
 /captures
 .externalNativeBuild
 .cxx
-local.properties
+
+# Kotlin
+.kotlin/
+
+# IDE / Editor
+.vscode/
+
+# AI Agents & skills
+.agents/
+skills-lock.json
+
+# Crash logs
+hs_err_pid*.log

@@ -29,7 +29,9 @@ fun WritingCanvas(
     modifier: Modifier = Modifier,
     strokes: SnapshotStateList<List<Offset>>,
     onStrokeAdded: (List<Offset>) -> Unit,
-    guideCharacter: String? = null
+    guideCharacter: String? = null,
+    strokeColor: Color = Color(0xFF1B365D),
+    enabled: Boolean = true
 ) {
     val currentStroke = remember {
         mutableStateListOf<Offset>()
@@ -43,26 +45,28 @@ fun WritingCanvas(
         Canvas(
             modifier = Modifier
                 .fillMaxSize()
-                .pointerInput(strokes) {
-                    detectDragGestures(
-                        onDragStart = { offset ->
-                            currentStroke.clear()
-                            currentStroke.add(offset)
-                        },
-                        onDrag = { change, _ ->
-                            change.consume()
-                            currentStroke.add(change.position)
-                        },
-                        onDragEnd = {
-                            if (currentStroke.isNotEmpty()) {
-                                onStrokeAdded(currentStroke.toList())
+                .pointerInput(strokes, enabled) {
+                    if (enabled) {
+                        detectDragGestures(
+                            onDragStart = { offset ->
+                                currentStroke.clear()
+                                currentStroke.add(offset)
+                            },
+                            onDrag = { change, _ ->
+                                change.consume()
+                                currentStroke.add(change.position)
+                            },
+                            onDragEnd = {
+                                if (currentStroke.isNotEmpty()) {
+                                    onStrokeAdded(currentStroke.toList())
+                                    currentStroke.clear()
+                                }
+                            },
+                            onDragCancel = {
                                 currentStroke.clear()
                             }
-                        },
-                        onDragCancel = {
-                            currentStroke.clear()
-                        }
-                    )
+                        )
+                    }
                 }
         ) {
             val gridColor = Color(0xFFECE3D5)
@@ -114,7 +118,7 @@ fun WritingCanvas(
 
                 if (points.size == 1) {
                     drawCircle(
-                        color = Color(0xFF1B365D),
+                        color = strokeColor,
                         radius = 2.5.dp.toPx(),
                         center = points.first()
                     )
@@ -129,7 +133,7 @@ fun WritingCanvas(
 
                     drawPath(
                         path = path,
-                        color = Color(0xFF1B365D),
+                        color = strokeColor,
                         style = Stroke(
                             width = 10.dp.toPx(),
                             cap = StrokeCap.Round,

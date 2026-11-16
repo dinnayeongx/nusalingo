@@ -5,21 +5,70 @@ import com.example.nusalingo.feature.quiz.QuizAksara
 import com.example.nusalingo.feature.quiz.QuizAksaraContent
 import com.example.nusalingo.ui.components.quiz.BubbleType
 
+internal const val RANGKAI_AKSARA_QUESTION_COUNT = 10
+
+private fun rangkaiQuestion(
+    prompt: String,
+    answer: List<String>,
+    distractors: List<String>
+) = QuizAksara(
+    bubble = prompt,
+    answer = answer,
+    bank = (answer + distractors).shuffled()
+)
+
 private val RangkaiAksaraQuestions = listOf(
-    QuizAksara(
-        bubble = "BALA RAMA",
+    rangkaiQuestion(
+        prompt = "SAPI TURU",
+        answer = listOf("ꦱ", "ꦥꦶ", "ꦠꦸ", "ꦫꦸ"),
+        distractors = listOf("ꦩ", "ꦫ", "ꦧ")
+    ),
+    rangkaiQuestion(
+        prompt = "SEGO SATE ENAK",
+        answer = listOf("ꦱꦼ", "ꦒꦺꦴ", "ꦱ", "ꦠꦺ", "ꦲꦺ", "ꦤ", "ꦏ꧀"),
+        distractors = listOf("ꦧꦸ", "ꦭ", "ꦥꦶ")
+    ),
+    rangkaiQuestion(
+        prompt = "PITIK TELU",
+        answer = listOf("ꦥꦶ", "ꦠꦶ", "ꦏ꧀", "ꦠꦼ", "ꦭꦸ"),
+        distractors = listOf("ꦱ", "ꦧ", "ꦫꦸ")
+    ),
+    rangkaiQuestion(
+        prompt = "KOTA ANYAR",
+        answer = listOf("ꦏꦺꦴ", "ꦠ", "ꦲ", "ꦚꦂ"),
+        distractors = listOf("ꦧꦸ", "ꦫ", "ꦱ")
+    ),
+    rangkaiQuestion(
+        prompt = "TELO IKI ENAK",
+        answer = listOf("ꦠꦼ", "ꦭꦺꦴ", "ꦲꦶ", "ꦏꦶ", "ꦲꦺ", "ꦤ", "ꦏ꧀"),
+        distractors = listOf("ꦥꦶ", "ꦱꦼ", "ꦩ")
+    ),
+    rangkaiQuestion(
+        prompt = "KULI MACA BUKU",
+        answer = listOf("ꦏꦸ", "ꦭꦶ", "ꦩ", "ꦕ", "ꦧꦸ", "ꦏꦸ"),
+        distractors = listOf("ꦱꦼ", "ꦏ꧀", "ꦫꦸ")
+    ),
+    rangkaiQuestion(
+        prompt = "BALA RAMA",
         answer = listOf("ꦧ", "ꦭ", "ꦫ", "ꦩ"),
-        bank = listOf("ꦭ", "ꦧ", "ꦤ", "ꦩ", "ꦫ")
+        distractors = listOf("ꦤ", "ꦱ", "ꦏ")
     ),
-    QuizAksara(
-        bubble = "CARA",
-        answer = listOf("ꦕ", "ꦫ"),
-        bank = listOf("ꦫ", "ꦕ", "ꦲ")
+    rangkaiQuestion(
+        prompt = "PISO ANYAR",
+        answer = listOf("ꦥꦶ", "ꦱꦺꦴ", "ꦲ", "ꦚꦂ"),
+        distractors = listOf("ꦧꦸ", "ꦧ", "ꦭꦶ")
     ),
-    QuizAksara(
-        bubble = "NAMA",
-        answer = listOf("ꦤ", "ꦩ"),
-        bank = listOf("ꦩ", "ꦤ", "ꦮ")
+    rangkaiQuestion(
+        prompt = "BOCAH MACA CERITA",
+        answer = listOf("ꦧꦺꦴ", "ꦕꦃ", "ꦩ", "ꦕ", "ꦕꦼ", "ꦫꦶ", "ꦠ"),
+        distractors = listOf("ꦱꦼ", "ꦏꦸ", "ꦥꦶ")
+    ),
+    rangkaiQuestion(
+        prompt = "ANA BEBEK ING KOTA ANYAR",
+        answer = listOf(
+            "ꦲ", "ꦤ", "ꦧꦼ", "ꦧꦼ", "ꦏ꧀", "ꦲꦶꦁ", "ꦏꦺꦴ", "ꦠ", "ꦲ", "ꦚꦂ"
+        ),
+        distractors = listOf("ꦥꦶ", "ꦭꦶ", "ꦱꦼ", "ꦒꦺꦴ")
     )
 )
 
@@ -30,13 +79,34 @@ fun RangkaiAksaraScreen(
         correctAnswers: Int,
         totalQuestions: Int,
         xpEarned: Int
-    ) -> Unit
+    ) -> Unit,
+    onWrongAnswers: (List<QuizReviewAnswer>) -> Unit = {},
+    questionIndices: List<Int> = RangkaiAksaraQuestions.indices.toList(),
+    awardXp: Boolean = true,
+    attemptId: Int = 0
 ) {
     QuizAksaraContent(
         questions = RangkaiAksaraQuestions,
         bubbleType = BubbleType.LATIN_TEXT,
         tokensAreAksara = true,
         onExit = onExit,
-        onFinish = onFinish
+        onFinish = onFinish,
+        xpPerCorrectAnswer = 5,
+        celebrateCorrectAnswers = true,
+        questionIndices = questionIndices,
+        awardXp = awardXp,
+        attemptId = attemptId,
+        onIncorrectQuestionIndices = { indices ->
+            onWrongAnswers(
+                indices.map { index ->
+                    val question = RangkaiAksaraQuestions[index]
+                    QuizReviewAnswer(
+                        questionNumber = index + 1,
+                        prompt = question.bubble,
+                        correctAnswer = question.answer.joinToString("")
+                    )
+                }
+            )
+        }
     )
 }

@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -32,14 +34,25 @@ import com.example.nusalingo.ui.components.quiz.AnswerSlotRow
 import com.example.nusalingo.ui.components.quiz.BubbleQuestion
 import com.example.nusalingo.ui.components.quiz.BubbleType
 import com.example.nusalingo.ui.components.quiz.QuizAnswerState
+import com.example.nusalingo.ui.components.quiz.QuizAnswerConfetti
 import com.example.nusalingo.ui.components.quiz.QuizTopBar
+import com.example.nusalingo.ui.components.quiz.QuizScreenTitle
+import com.example.nusalingo.ui.theme.NunitoFont
 import com.example.nusalingo.ui.theme.NusalingoColors
 
 internal data class QuizAksara(
     val bubble: String,
     val answer: List<String>,
     val bank: List<String>
-)
+) {
+    init {
+        val bankCounts = bank.groupingBy { it }.eachCount()
+        val answerCounts = answer.groupingBy { it }.eachCount()
+        require(answerCounts.all { (tile, count) -> (bankCounts[tile] ?: 0) >= count }) {
+            "The answer bank must contain every required tile."
+        }
+    }
+}
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -53,21 +66,36 @@ internal fun QuizAksaraContent(
         totalQuestions: Int,
         xpEarned: Int
     ) -> Unit,
-    title: String = "Susun Balok Aksara menjadi Kata"
+    title: String = "Susun Balok Aksara menjadi Kata",
+    xpPerCorrectAnswer: Int = 10,
+    celebrateCorrectAnswers: Boolean = false,
+    onIncorrectQuestionIndices: ((List<Int>) -> Unit)? = null,
+    questionIndices: List<Int> = questions.indices.toList(),
+    awardXp: Boolean = true,
+    attemptId: Int = 0
 ) {
-    var questionIndex by remember { mutableIntStateOf(0) }
-    var checked by remember { mutableStateOf(false) }
-    var correctAnswers by remember { mutableIntStateOf(0) }
-    val placed = remember { mutableStateListOf<Int>() }
+    val scrollState = rememberScrollState()
+    require(questionIndices.isNotEmpty()) { "At least one quiz question is required." }
+    require(questionIndices.all { it in questions.indices }) {
+        "Quiz question indices must refer to an existing question."
+    }
 
-    val question = questions[questionIndex]
+    var questionIndex by remember(questionIndices, attemptId) { mutableIntStateOf(0) }
+    var checked by remember(questionIndices, attemptId) { mutableStateOf(false) }
+    var correctAnswers by remember(questionIndices, attemptId) { mutableIntStateOf(0) }
+    var confettiKey by remember(questionIndices, attemptId) { mutableIntStateOf(0) }
+    var incorrectQuestionIndices by remember(questionIndices, attemptId) {
+        mutableStateOf(setOf<Int>())
+    }
+    val placed = remember(questionIndices, attemptId) { mutableStateListOf<Int>() }
+
+    val currentQuestionIndex = questionIndices[questionIndex]
+    val question = questions[currentQuestionIndex]
     val placedTokens = placed.map { question.bank[it] }
     val isCorrect = placedTokens == question.answer
-    val xp = correctAnswers * 10
+    val xp = if (awardXp) correctAnswers * xpPerCorrectAnswer else 0
 
-    val progress = (
-            questionIndex + if (checked) 1 else 0
-            ).toFloat() / questions.size
+    val progress = (questionIndex + if (checked) 1 else 0).toFloat() / questionIndices.size
 
     val slotState = when {
         checked && isCorrect -> QuizAnswerState.CORRECT
@@ -84,7 +112,8 @@ internal fun QuizAksaraContent(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 20.dp)
-                .padding(bottom = 110.dp)
+                .padding(bottom = 132.dp)
+                .verticalScroll(scrollState)
         ) {
             QuizTopBar(
                 progress = progress,
@@ -94,24 +123,24 @@ internal fun QuizAksaraContent(
 
             Spacer(Modifier.height(20.dp))
 
-            Text(
-                text = title,
-                fontSize = 22.sp,
-                fontWeight = FontWeight.ExtraBold,
-                color = NusalingoColors.TextPrimary
-            )
+            QuizScreenTitle(text = title, fontSize = 22.sp)
 
-            Spacer(Modifier.height(32.dp))
+            Spacer(
+                Modifier.height(
+                    if (bubbleType == BubbleType.LATIN_TEXT) 24.dp else 32.dp
+                )
+            )
 
             BubbleQuestion(
                 text = question.bubble,
-                type = bubbleType,
-                onAudioClick = {
-                    // Audio dapat ditambahkan nanti
-                }
+                type = bubbleType
             )
 
-            Spacer(Modifier.height(40.dp))
+            Spacer(
+                Modifier.height(
+                    if (bubbleType == BubbleType.LATIN_TEXT) 28.dp else 40.dp
+                )
+            )
 
             AnswerSlotRow(
                 tokens = placedTokens,
@@ -124,12 +153,18 @@ internal fun QuizAksaraContent(
                 }
             )
 
-            Spacer(Modifier.height(40.dp))
+            Spacer(
+                Modifier.height(
+                    if (bubbleType == BubbleType.LATIN_TEXT) 32.dp else 40.dp
+                )
+            )
 
             FlowRow(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
+                verticalArrangement = Arrangement.spacedBy(
+                    if (bubbleType == BubbleType.LATIN_TEXT) 14.dp else 10.dp
+                )
             ) {
                 question.bank.forEachIndexed { bankIndex, token ->
                     AnswerCard(
@@ -154,6 +189,17 @@ internal fun QuizAksaraContent(
                 .background(NusalingoColors.Background)
                 .navigationBarsPadding()
         ) {
+            if (!checked && scrollState.maxValue > 0) {
+                Text(
+                    text = "Geser untuk melihat semua pilihan",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp, vertical = 4.dp),
+                    fontSize = 12.sp,
+                    color = NusalingoColors.TextSecondary
+                )
+            }
+
             if (checked) {
                 Column(
                     modifier = Modifier
@@ -182,7 +228,7 @@ internal fun QuizAksaraContent(
                     Spacer(Modifier.height(12.dp))
 
                     PrimaryButton(
-                        text = if (questionIndex < questions.lastIndex) {
+                        text = if (questionIndex < questionIndices.lastIndex) {
                             "Selanjutnya"
                         } else {
                             "Lihat Hasil"
@@ -190,18 +236,21 @@ internal fun QuizAksaraContent(
                         containerColor = if (isCorrect) {
                             Color(0xFF16AD61)
                         } else {
-                            NusalingoColors.ActionPrimary
+                            Color(0xFFD64545)
                         },
                         onClick = {
-                            if (questionIndex < questions.lastIndex) {
+                            if (questionIndex < questionIndices.lastIndex) {
                                 questionIndex++
                                 placed.clear()
                                 checked = false
                             } else {
+                                onIncorrectQuestionIndices?.invoke(
+                                    incorrectQuestionIndices.sorted()
+                                )
                                 onFinish(
                                     correctAnswers,
-                                    questions.size,
-                                    correctAnswers * 10
+                                    questionIndices.size,
+                                    xp
                                 )
                             }
                         }
@@ -213,7 +262,15 @@ internal fun QuizAksaraContent(
                     onClick = {
                         if (placed.size == question.answer.size) {
                             checked = true
-                            if (isCorrect) correctAnswers++
+                            if (isCorrect) {
+                                correctAnswers++
+                                incorrectQuestionIndices =
+                                    incorrectQuestionIndices - currentQuestionIndex
+                                if (celebrateCorrectAnswers) confettiKey++
+                            } else {
+                                incorrectQuestionIndices =
+                                    incorrectQuestionIndices + currentQuestionIndex
+                            }
                         }
                     },
                     enabled = placed.size == question.answer.size,
@@ -223,6 +280,10 @@ internal fun QuizAksaraContent(
                     )
                 )
             }
+        }
+
+        if (celebrateCorrectAnswers && checked && isCorrect) {
+            QuizAnswerConfetti(key = confettiKey)
         }
     }
 }

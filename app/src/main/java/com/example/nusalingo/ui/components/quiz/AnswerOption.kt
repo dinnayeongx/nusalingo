@@ -50,7 +50,7 @@ fun AnswerOption(
     ) {
         Box(
             modifier = Modifier.padding(
-                horizontal = 32.dp,
+                horizontal = 12.dp,
                 vertical = 14.dp
             ),
             contentAlignment = Alignment.Center
