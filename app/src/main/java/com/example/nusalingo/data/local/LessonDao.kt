@@ -22,4 +22,6 @@ interface LessonDao {
     fun getHistory(): Flow<List<HistoryEntity>>
     @Query("DELETE FROM characters")
     suspend fun clearCharacters()
+    @Query("DELETE FROM history")
+    suspend fun clearHistory()
 }

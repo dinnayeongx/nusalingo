@@ -15,6 +15,8 @@ object Routes {
     const val LEARN = "learn"
     const val LESSON_DETAIL = "lesson_detail/{title}"
     const val PRACTICE = "practice"
+    const val PROFILE = "profile"
+    const val ACHIEVEMENT = "achievement"
 
     const val LEVEL_SESSION = "level/{levelId}"
     const val PRACTICE_QUIZ = "practice/quiz/{quizType}"

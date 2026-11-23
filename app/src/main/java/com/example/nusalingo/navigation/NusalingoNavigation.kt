@@ -6,7 +6,11 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.NavType
@@ -18,6 +22,10 @@ import com.example.nusalingo.feature.level.screen.LevelQuizRoute
 import com.example.nusalingo.feature.lesson.screen.LessonDetailRoute
 import com.example.nusalingo.feature.lesson.screen.LessonRoute
 import com.example.nusalingo.feature.practice.screen.PracticeRoute
+import com.example.nusalingo.feature.profile.AchievementScreen
+import com.example.nusalingo.feature.profile.ProfileRoute
+import com.example.nusalingo.feature.profile.ProfileViewModel
+import com.example.nusalingo.feature.profile.ProfileViewModelFactory
 import com.example.nusalingo.feature.quiz.screen.QuizFlowRoute
 import com.example.nusalingo.feature.quiz.screen.QuizType
 
@@ -134,6 +142,28 @@ fun NusalingoNavigation(
             QuizFlowRoute(
                 quizType = quizType,
                 onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Routes.PROFILE) {
+            ProfileRoute(
+                onNavigateToAchievement = { navController.navigate(Routes.ACHIEVEMENT) },
+                onLoggedOut = {
+                    navController.navigate(Routes.LOGIN) {
+                        popUpTo(navController.graph.id) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                }
+            )
+        }
+
+        composable(Routes.ACHIEVEMENT) {
+            val context = LocalContext.current.applicationContext
+            val vm: ProfileViewModel = viewModel(factory = ProfileViewModelFactory(context))
+            val state by vm.uiState.collectAsState()
+            AchievementScreen(
+                achievements = state.achievements,
+                onBackClick = { navController.popBackStack() }
             )
         }
     }

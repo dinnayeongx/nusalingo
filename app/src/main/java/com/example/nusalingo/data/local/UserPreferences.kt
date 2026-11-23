@@ -43,6 +43,14 @@ class UserPreferences(private val context: Context) {
         context.dataStore.edit { prefs -> prefs[categoryKey] = value }
     }
 
+    suspend fun clearProgress() {
+        context.dataStore.edit { prefs ->
+            prefs.remove(totalXpKey)
+            prefs.remove(completedLevelCheckpointsKey)
+            prefs.remove(levelCheckpointScoresKey)
+        }
+    }
+
     suspend fun addXp(amount: Int): Int {
         require(amount >= 0) { "XP amount cannot be negative." }
         var updatedTotal = 0

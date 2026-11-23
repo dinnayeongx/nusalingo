@@ -1,4 +1,3 @@
-
 package com.example.nusalingo
 
 import androidx.compose.foundation.layout.padding
@@ -27,6 +26,7 @@ fun NusaLingoApp() {
         Routes.HOME -> MainTab.HOME
         Routes.PRACTICE -> MainTab.PRACTICE
         Routes.LEARN -> MainTab.LESSON
+        Routes.PROFILE, Routes.ACHIEVEMENT -> MainTab.PROFILE
         else -> MainTab.HOME
     }
 
@@ -45,7 +45,7 @@ fun NusaLingoApp() {
                             MainTab.HOME -> Routes.HOME
                             MainTab.PRACTICE -> Routes.PRACTICE
                             MainTab.LESSON -> Routes.LEARN
-                            MainTab.PROFILE -> Routes.HOME
+                            MainTab.PROFILE -> Routes.PROFILE
                         }
 
                         navController.navigate(destination) {
